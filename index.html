@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POMO CAR</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #0A1A2A; /* 深蓝色夜晚背景 */
+        }
+        .building {
+            position: absolute;
+            background-color: #333;
+            border: 1px solid #444;
+        }
+        .window {
+            position: absolute;
+            background-color: #FFEB3B;
+            opacity: 0.7;
+        }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-size: 24px;
+            text-shadow: 1px 1px 2px black;
+            z-index: 100;
+        }
+        #home-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        canvas {
+            display: block;
+        }
+        #timer-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 200;
+        }
+        #timer {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        #start-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #start-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">POMO CAR</div>
+    <canvas id="carCanvas"></canvas>
+    
+    <div id="timer-container">
+        <div id="timer">25:00</div>
+        <button id="start-button">Start</button>
+    </div>
+
+    <script>
+        // 获取Canvas元素和上下文
+        const canvas = document.getElementById('carCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // 设置Canvas大小为窗口大小
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // 汽车属性
+        const car = {
+            x: -100, // 初始位置在左侧屏幕外
+            y: canvas.height * 0.75, // 调整到页面3/4处
+            width: 120,
+            height: 60,
+            speed: 2,
+            reachedCenter: false, // 标记汽车是否到达中心位置
+            // 抖动相关属性
+            shake: {
+                amplitude: 1.5, // 抖动幅度
+                frequency: 0.2, // 抖动频率
+                offset: 0 // 抖动偏移量
+            },
+            // 车轮旋转相关属性
+            wheels: {
+                rotation: 0, // 车轮旋转角度
+                speed: 0.2 // 车轮旋转速度
+            }
+        };
+        
+        // 背景元素 - 高楼大厦
+        const buildings = [];
+        const numBuildings = 15;
+        
+        // 创建高楼大厦
+        function createBuildings() {
+            for (let i = 0; i < numBuildings; i++) {
+                const height = Math.random() * 200 + 100; // 建筑高度
+                const width = Math.random() * 60 + 40; // 建筑宽度
+                buildings.push({
+                    x: i * (width + 20), // 均匀分布在屏幕上
+                    y: canvas.height - height - 100, // 从底部向上生长
+                    width: width,
+                    height: height,
+                    windows: [], // 存储窗户位置
+                    color: Math.random() > 0.5 ? '#333' : '#222' // 随机深色
+                });
+                
+                // 为每栋建筑创建窗户
+                const numWindowsHorizontal = Math.floor(width / 15);
+                const numWindowsVertical = Math.floor(height / 20);
+                
+                for (let wx = 0; wx < numWindowsHorizontal; wx++) {
+                    for (let wy = 0; wy < numWindowsVertical; wy++) {
+                        // 随机决定窗户是否亮着
+                        if (Math.random() > 0.3) {
+                            buildings[i].windows.push({
+                                x: wx * 15 + 5,
+                                y: wy * 20 + 10,
+                                width: 10,
+                                height: 15,
+                                lit: Math.random() > 0.5 // 随机决定窗户是否亮着
+                            });
+                        }
+                    }
+                }
+            }
+        }
+        
+        // 绘制高楼大厦
+        function drawBuildings() {
+            buildings.forEach(building => {
+                // 绘制建筑主体
+                ctx.fillStyle = building.color;
+                ctx.fillRect(building.x, building.y, building.width, building.height);
+                
+                // 绘制窗户
+                building.windows.forEach(window => {
+                    ctx.fillStyle = window.lit ? '#FFEB3B' : '#555'; // 亮窗户为黄色，暗窗户为灰色
+                    ctx.fillRect(
+                        building.x + window.x, 
+                        building.y + window.y, 
+                        window.width, 
+                        window.height
+                    );
+                });
+            });
+        }
+        
+        // 移动高楼大厦
+        function moveBuildings() {
+            if (car.reachedCenter) {
+                // 当汽车到达中心位置后，建筑向左移动
+                buildings.forEach(building => {
+                    building.x -= car.speed;
+                    
+                    // 如果建筑移出屏幕左侧，重置到右侧
+                    if (building.x + building.width < 0) {
+                        building.x = canvas.width;
+                        // 重新生成窗户
+                        building.windows = [];
+                        const numWindowsHorizontal = Math.floor(building.width / 15);
+                        const numWindowsVertical = Math.floor(building.height / 20);
+                        
+                        for (let wx = 0; wx < numWindowsHorizontal; wx++) {
+                            for (let wy = 0; wy < numWindowsVertical; wy++) {
+                                if (Math.random() > 0.3) {
+                                    building.windows.push({
+                                        x: wx * 15 + 5,
+                                        y: wy * 20 + 10,
+                                        width: 10,
+                                        height: 15,
+                                        lit: Math.random() > 0.5
+                                    });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 道路属性
+        const road = {
+            offset: 0, // 道路偏移量，用于移动道路
+            stripeWidth: 40, // 道路标记线宽度
+            stripeGap: 60 // 道路标记线间隔
+        };
+        
+        // 绘制道路
+        function drawRoad() {
+            // 灰色道路
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(0, canvas.height * 0.75 + 30, canvas.width, 60);
+            
+            // 添加道路纹理 - 小坑洼和不平整
+            ctx.fillStyle = '#2A2A2A';
+            for (let i = 0; i < 20; i++) {
+                const x = (i * 100 + (road.offset * 0.5) % 100) % canvas.width;
+                const width = Math.random() * 20 + 10;
+                ctx.fillRect(x, canvas.height * 0.75 + 35, width, 5);
+            }
+            
+            // 白色标记线（虚线）
+            ctx.fillStyle = '#FFFFFF';
+            const totalWidth = road.stripeWidth + road.stripeGap;
+            const numStripes = Math.ceil(canvas.width / totalWidth) + 1;
+            
+            for (let i = 0; i < numStripes; i++) {
+                const x = i * totalWidth - (road.offset % totalWidth);
+                ctx.fillRect(x, canvas.height * 0.75 + 58, road.stripeWidth, 4);
+            }
+        }
+
+        // 绘制汽车
+        function drawCar() {
+            // 计算当前抖动的Y偏移量
+            const shakeOffset = car.shake.amplitude * Math.sin(car.shake.offset);
+            
+            // 车身（红色矩形）
+            ctx.fillStyle = '#FF0000';
+            ctx.fillRect(car.x, car.y + shakeOffset, car.width, car.height / 2);
+            
+            // 车顶（深红色矩形）
+            ctx.fillStyle = '#DD0000';
+            ctx.fillRect(car.x + 20, car.y - 20 + shakeOffset, car.width - 60, car.height / 2);
+            
+            // 车窗（蓝色半透明）
+            ctx.fillStyle = 'rgba(136, 204, 255, 0.7)';
+            ctx.fillRect(car.x + 25, car.y - 15 + shakeOffset, car.width - 70, car.height / 2 - 10);
+            
+            // 车轮（黑色圆形）
+            ctx.fillStyle = '#111111';
+            
+            // 前轮（带旋转）
+            ctx.save();
+            ctx.translate(car.x + 90, car.y + 30 + shakeOffset);
+            ctx.rotate(car.wheels.rotation);
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 添加轮毂细节
+            ctx.fillStyle = '#444';
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 添加轮辐
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(15 * Math.cos(i * Math.PI / 2), 15 * Math.sin(i * Math.PI / 2));
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // 后轮（带旋转）
+            ctx.save();
+            ctx.translate(car.x + 30, car.y + 30 + shakeOffset);
+            ctx.rotate(car.wheels.rotation);
+            ctx.beginPath();
+            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 添加轮毂细节
+            ctx.fillStyle = '#444';
+            ctx.beginPath();
+            ctx.arc(0, 0, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 添加轮辐
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 4; i++) {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(15 * Math.cos(i * Math.PI / 2), 15 * Math.sin(i * Math.PI / 2));
+                ctx.stroke();
+            }
+            ctx.restore();
+            
+            // 车灯（黄色圆形）
+            ctx.fillStyle = '#FFFF00';
+            ctx.beginPath();
+            ctx.arc(car.x + 120, car.y + 10 + shakeOffset, 5, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 添加一些细节 - 车牌
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(car.x + 100, car.y + 25 + shakeOffset, 15, 5);
+        }
+
+        // 动画状态控制
+        let isAnimating = false;
+        
+        // 动画循环
+        function animate() {
+            if (!isAnimating) return; // 如果动画未启动，则不执行
+            
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制高楼大厦
+            drawBuildings();
+            
+            // 绘制道路
+            drawRoad();
+            
+            // 检查汽车是否到达屏幕中间位置
+            const centerPosition = canvas.width / 2 - car.width / 2;
+            
+            if (!car.reachedCenter && car.x < centerPosition) {
+                // 汽车还未到达中间，继续向右移动
+                car.x += car.speed;
+            } else {
+                // 汽车已到达中间，标记为已到达中心
+                car.reachedCenter = true;
+                car.x = centerPosition; // 固定汽车位置在中间
+                
+                // 移动道路偏移量，创造道路向左移动的效果
+                road.offset += car.speed;
+            }
+            
+            // 移动高楼大厦
+            moveBuildings();
+            
+            // 更新汽车抖动效果
+            car.shake.offset += car.shake.frequency;
+            
+            // 更新车轮旋转
+            car.wheels.rotation += car.wheels.speed;
+            
+            // 绘制汽车
+            drawCar();
+            
+            // 继续动画循环
+            requestAnimationFrame(animate);
+        }
+
+        // 窗口大小调整
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            car.y = canvas.height * 0.75; // 更新汽车垂直位置
+            
+            // 如果汽车已到达中心，重新计算中心位置
+            if (car.reachedCenter) {
+                car.x = canvas.width / 2 - car.width / 2;
+            }
+            
+            // 重新创建高楼大厦
+            buildings.length = 0;
+            createBuildings();
+        });
+
+        // 计时器相关变量和函数
+        let timerInterval;
+        let totalSeconds = 25 * 60; // 25分钟，以秒为单位
+        const timerElement = document.getElementById('timer');
+        const startButton = document.getElementById('start-button');
+        
+        // 更新计时器显示
+        function updateTimerDisplay() {
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+        
+        // 开始计时器
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    isAnimating = false; // 停止动画
+                    startButton.textContent = 'Restart';
+                    return;
+                }
+                
+                totalSeconds--;
+                updateTimerDisplay();
+            }, 1000);
+        }
+        
+        // 开始按钮点击事件
+        startButton.addEventListener('click', () => {
+            // 开始动画
+            isAnimating = true;
+            animate();
+            
+            // 开始计时器
+            startTimer();
+            
+            // 隐藏计时器容器
+            document.getElementById('timer-container').style.opacity = '0.5';
+            startButton.textContent = 'Driving...';
+            startButton.disabled = true;
+        });
+        
+        // 创建高楼大厦
+        createBuildings();
+        
+        // 初始化场景（但不启动动画）
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawBuildings();
+        drawRoad();
+        drawCar();
+        
+        // 初始化计时器显示
+        updateTimerDisplay();
+    </script>
+</body>
+</html>
