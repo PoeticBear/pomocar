@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pomocar.vercel.app/sitemap.xml
