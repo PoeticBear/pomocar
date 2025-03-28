@@ -153,89 +153,122 @@
         const buildings = [];
         const numBuildings = 15;
         
-        // 创建高楼大厦
-        function createBuildings() {
-            for (let i = 0; i < numBuildings; i++) {
-                const height = Math.random() * 200 + 100; // 建筑高度
-                const width = Math.random() * 60 + 40; // 建筑宽度
-                buildings.push({
-                    x: i * (width + 20), // 均匀分布在屏幕上
-                    y: canvas.height - height - 100, // 从底部向上生长
+        // 将 buildings 数组改为 landscape 数组，用于存储沙丘和仙人掌
+        const landscape = {
+            dunes: [], // 沙丘
+            cacti: []  // 仙人掌
+        };
+        const numDunes = 8;
+        const numCacti = 12;
+        
+        // 创建沙漠景观
+        function createLandscape() {
+            // 创建沙丘
+            for (let i = 0; i < numDunes; i++) {
+                const height = Math.random() * 150 + 100; // 沙丘高度
+                const width = Math.random() * 200 + 150; // 沙丘宽度
+                landscape.dunes.push({
+                    x: i * (width - 50), // 均匀分布，略有重叠
+                    y: canvas.height - height - 50,
                     width: width,
                     height: height,
-                    windows: [], // 存储窗户位置
-                    color: Math.random() > 0.5 ? '#333' : '#222' // 随机深色
+                    color: '#D2B48C' // 沙色
+                });
+            }
+            
+            // 创建仙人掌
+            for (let i = 0; i < numCacti; i++) {
+                const height = Math.random() * 60 + 40;
+                landscape.cacti.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height * 0.75 - height,
+                    height: height,
+                    width: 20,
+                    branches: [] // 仙人掌的分支
                 });
                 
-                // 为每栋建筑创建窗户
-                const numWindowsHorizontal = Math.floor(width / 15);
-                const numWindowsVertical = Math.floor(height / 20);
-                
-                for (let wx = 0; wx < numWindowsHorizontal; wx++) {
-                    for (let wy = 0; wy < numWindowsVertical; wy++) {
-                        // 随机决定窗户是否亮着
-                        if (Math.random() > 0.3) {
-                            buildings[i].windows.push({
-                                x: wx * 15 + 5,
-                                y: wy * 20 + 10,
-                                width: 10,
-                                height: 15,
-                                lit: Math.random() > 0.5 // 随机决定窗户是否亮着
-                            });
-                        }
-                    }
+                // 为每个仙人掌添加1-2个分支
+                const numBranches = Math.floor(Math.random() * 2) + 1;
+                for (let j = 0; j < numBranches; j++) {
+                    landscape.cacti[i].branches.push({
+                        height: Math.random() * 30 + 20,
+                        position: Math.random() * 0.6 + 0.2, // 分支位置（相对高度）
+                        side: Math.random() > 0.5 ? 1 : -1 // 分支方向（左/右）
+                    });
                 }
             }
         }
         
-        // 绘制高楼大厦
-        function drawBuildings() {
-            buildings.forEach(building => {
-                // 绘制建筑主体
-                ctx.fillStyle = building.color;
-                ctx.fillRect(building.x, building.y, building.width, building.height);
+        // 绘制沙漠景观
+        function drawLandscape() {
+            // 绘制天空渐变
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.75);
+            gradient.addColorStop(0, '#1a237e'); // 深蓝色
+            gradient.addColorStop(1, '#4a148c'); // 紫色
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制沙丘
+            landscape.dunes.forEach(dune => {
+                ctx.fillStyle = dune.color;
+                ctx.beginPath();
+                ctx.moveTo(dune.x, canvas.height);
+                ctx.quadraticCurveTo(
+                    dune.x + dune.width / 2, 
+                    dune.y,
+                    dune.x + dune.width, 
+                    canvas.height
+                );
+                ctx.fill();
+            });
+            
+            // 绘制仙人掌
+            landscape.cacti.forEach(cactus => {
+                // 主干
+                ctx.fillStyle = '#2E7D32';
+                ctx.fillRect(cactus.x, cactus.y, cactus.width, cactus.height);
                 
-                // 绘制窗户
-                building.windows.forEach(window => {
-                    ctx.fillStyle = window.lit ? '#FFEB3B' : '#555'; // 亮窗户为黄色，暗窗户为灰色
+                // 分支
+                cactus.branches.forEach(branch => {
+                    const branchY = cactus.y + cactus.height * branch.position;
                     ctx.fillRect(
-                        building.x + window.x, 
-                        building.y + window.y, 
-                        window.width, 
-                        window.height
+                        cactus.x + (branch.side * cactus.width), 
+                        branchY,
+                        cactus.width,
+                        branch.height
                     );
+                    // 分支连接处的圆角
+                    ctx.beginPath();
+                    ctx.arc(
+                        cactus.x + (branch.side * cactus.width) + (branch.side < 0 ? cactus.width : 0),
+                        branchY,
+                        cactus.width / 2,
+                        0,
+                        Math.PI * 2
+                    );
+                    ctx.fill();
                 });
             });
         }
         
-        // 移动高楼大厦
-        function moveBuildings() {
+        // 移动沙漠景观
+        function moveLandscape() {
             if (car.reachedCenter) {
-                // 当汽车到达中心位置后，建筑向左移动
-                buildings.forEach(building => {
-                    building.x -= car.speed;
-                    
-                    // 如果建筑移出屏幕左侧，重置到右侧
-                    if (building.x + building.width < 0) {
-                        building.x = canvas.width;
-                        // 重新生成窗户
-                        building.windows = [];
-                        const numWindowsHorizontal = Math.floor(building.width / 15);
-                        const numWindowsVertical = Math.floor(building.height / 20);
-                        
-                        for (let wx = 0; wx < numWindowsHorizontal; wx++) {
-                            for (let wy = 0; wy < numWindowsVertical; wy++) {
-                                if (Math.random() > 0.3) {
-                                    building.windows.push({
-                                        x: wx * 15 + 5,
-                                        y: wy * 20 + 10,
-                                        width: 10,
-                                        height: 15,
-                                        lit: Math.random() > 0.5
-                                    });
-                                }
-                            }
-                        }
+                // 移动沙丘
+                landscape.dunes.forEach(dune => {
+                    dune.x -= car.speed * 0.5; // 沙丘移动速度较慢，营造远景效果
+                    if (dune.x + dune.width < 0) {
+                        dune.x = canvas.width;
+                    }
+                });
+                
+                // 移动仙人掌
+                landscape.cacti.forEach(cactus => {
+                    cactus.x -= car.speed;
+                    if (cactus.x + cactus.width < 0) {
+                        cactus.x = canvas.width;
+                        cactus.height = Math.random() * 60 + 40;
+                        cactus.y = canvas.height * 0.75 - cactus.height;
                     }
                 });
             }
@@ -364,8 +397,8 @@
             // 清除画布
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // 绘制高楼大厦
-            drawBuildings();
+            // 绘制沙漠景观替代原来的建筑
+            drawLandscape();
             
             // 绘制道路
             drawRoad();
@@ -385,8 +418,8 @@
                 road.offset += car.speed;
             }
             
-            // 移动高楼大厦
-            moveBuildings();
+            // 移动沙漠景观
+            moveLandscape();
             
             // 更新汽车抖动效果
             car.shake.offset += car.shake.frequency;
@@ -412,9 +445,10 @@
                 car.x = canvas.width / 2 - car.width / 2;
             }
             
-            // 重新创建高楼大厦
-            buildings.length = 0;
-            createBuildings();
+            // 重新创建沙漠景观
+            landscape.dunes = [];
+            landscape.cacti = [];
+            createLandscape();
         });
 
         // 计时器相关变量和函数
