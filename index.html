@@ -14,12 +14,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Basic SEO Meta Tags -->
-    <title>POMO CAR - Creative Pomodoro Timer with Driving Animation</title>
-    <meta name="description" content="POMO CAR is an innovative Pomodoro timer featuring a beautiful night city view and driving car animation. Boost your productivity with this 25-minute focus timer.">
-    <meta name="keywords" content="pomodoro timer, productivity tool, focus timer, work timer, POMO CAR, creative timer">
+    <title>POMODORO CAR - Creative Pomodoro Timer with Driving Animation</title>
+    <meta name="description" content="POMODORO CAR is an innovative Pomodoro timer featuring a beautiful night city view and driving car animation. Boost your productivity with this 25-minute focus timer.">
+    <meta name="keywords" content="pomodoro timer, productivity tool, focus timer, work timer, POMODORO CAR, creative timer">
     
     <!-- Open Graph Tags for Social Media -->
-    <meta property="og:title" content="POMO CAR - Creative Pomodoro Timer">
+    <meta property="og:title" content="POMODORO CAR - Creative Pomodoro Timer">
     <meta property="og:description" content="Enhance your work sessions with a beautiful night city view and driving car animation. Make your Pomodoro technique more engaging.">
     <meta property="og:image" content="https://pomodorocar.com/preview-image.jpg">
     <meta property="og:url" content="https://pomodorocar.com/">
@@ -27,7 +27,7 @@
     
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="POMO CAR - Creative Pomodoro Timer">
+    <meta name="twitter:title" content="POMODORO CAR - Creative Pomodoro Timer">
     <meta name="twitter:description" content="Enhance your work sessions with a beautiful night city view and driving car animation.">
     <meta name="twitter:image" content="https://pomodorocar.com/preview-image.jpg">
     
@@ -43,7 +43,7 @@
             margin: 0;
             overflow: hidden;
             font-family: 'Arial', sans-serif;
-            background-color: #0A1A2A; /* 深蓝色夜晚背景 */
+            background-color: #E1C78F; /* Sand colored background */
         }
         .building {
             position: absolute;
@@ -60,7 +60,7 @@
             top: 10px;
             width: 100%;
             text-align: center;
-            color: white;
+            color: #8B4513; /* Brown color for desert theme */
             font-size: 24px;
             text-shadow: 1px 1px 2px black;
             z-index: 100;
@@ -111,7 +111,7 @@
     </style>
 </head>
 <body>
-    <div id="info">POMO CAR</div>
+    <div id="info">POMODORO CAR</div>
     <canvas id="carCanvas"></canvas>
     
     <div id="timer-container">
@@ -153,23 +153,25 @@
         const buildings = [];
         const numBuildings = 15;
         
-        // 将 buildings 数组改为 landscape 数组，用于存储沙丘和仙人掌
+        // 沙漠景观元素
         const landscape = {
             dunes: [], // 沙丘
-            cacti: []  // 仙人掌
+            cacti: [], // 仙人掌
+            stars: []  // 星星
         };
         const numDunes = 8;
         const numCacti = 12;
+        const numStars = 100;
         
         // 创建沙漠景观
         function createLandscape() {
             // 创建沙丘
             for (let i = 0; i < numDunes; i++) {
                 const height = Math.random() * 150 + 100; // 沙丘高度
-                const width = Math.random() * 200 + 150; // 沙丘宽度
+                const width = Math.random() * 300 + 200; // 沙丘宽度
                 landscape.dunes.push({
-                    x: i * (width - 50), // 均匀分布，略有重叠
-                    y: canvas.height - height - 50,
+                    x: i * (canvas.width / (numDunes - 1)) - width/2, // 均匀分布
+                    y: canvas.height - height,
                     width: width,
                     height: height,
                     color: '#D2B48C' // 沙色
@@ -179,11 +181,12 @@
             // 创建仙人掌
             for (let i = 0; i < numCacti; i++) {
                 const height = Math.random() * 60 + 40;
+                const width = Math.random() * 10 + 15;
                 landscape.cacti.push({
                     x: Math.random() * canvas.width,
                     y: canvas.height * 0.75 - height,
                     height: height,
-                    width: 20,
+                    width: width,
                     branches: [] // 仙人掌的分支
                 });
                 
@@ -192,10 +195,20 @@
                 for (let j = 0; j < numBranches; j++) {
                     landscape.cacti[i].branches.push({
                         height: Math.random() * 30 + 20,
-                        position: Math.random() * 0.6 + 0.2, // 分支位置（相对高度）
+                        position: Math.random() * 0.4 + 0.2, // 分支位置（相对高度）
                         side: Math.random() > 0.5 ? 1 : -1 // 分支方向（左/右）
                     });
                 }
+            }
+            
+            // 创建星星
+            for (let i = 0; i < numStars; i++) {
+                landscape.stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * (canvas.height * 0.6),
+                    radius: Math.random() * 1.5 + 0.5,
+                    brightness: Math.random() * 0.8 + 0.2
+                });
             }
         }
         
@@ -203,14 +216,43 @@
         function drawLandscape() {
             // 绘制天空渐变
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height * 0.75);
-            gradient.addColorStop(0, '#1a237e'); // 深蓝色
-            gradient.addColorStop(1, '#4a148c'); // 紫色
+            gradient.addColorStop(0, '#1A237E'); // 深蓝色
+            gradient.addColorStop(0.3, '#4A148C'); // 紫色
+            gradient.addColorStop(0.7, '#E65100'); // 橙色
+            gradient.addColorStop(1, '#FFB74D'); // 浅橙色
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制星星
+            landscape.stars.forEach(star => {
+                ctx.fillStyle = `rgba(255, 255, 255, ${star.brightness})`;
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
             
             // 绘制沙丘
             landscape.dunes.forEach(dune => {
                 ctx.fillStyle = dune.color;
+                ctx.beginPath();
+                ctx.moveTo(dune.x, canvas.height);
+                ctx.quadraticCurveTo(
+                    dune.x + dune.width / 2, 
+                    dune.y,
+                    dune.x + dune.width, 
+                    canvas.height
+                );
+                ctx.fill();
+                
+                // 添加沙丘阴影效果
+                const shadowGradient = ctx.createLinearGradient(
+                    dune.x, dune.y, 
+                    dune.x + dune.width, dune.y
+                );
+                shadowGradient.addColorStop(0, 'rgba(0,0,0,0.2)');
+                shadowGradient.addColorStop(0.5, 'rgba(0,0,0,0)');
+                shadowGradient.addColorStop(1, 'rgba(0,0,0,0.2)');
+                ctx.fillStyle = shadowGradient;
                 ctx.beginPath();
                 ctx.moveTo(dune.x, canvas.height);
                 ctx.quadraticCurveTo(
@@ -228,26 +270,67 @@
                 ctx.fillStyle = '#2E7D32';
                 ctx.fillRect(cactus.x, cactus.y, cactus.width, cactus.height);
                 
+                // 主干顶部圆角
+                ctx.beginPath();
+                ctx.arc(
+                    cactus.x + cactus.width / 2,
+                    cactus.y,
+                    cactus.width / 2,
+                    0,
+                    Math.PI,
+                    true
+                );
+                ctx.fill();
+                
                 // 分支
                 cactus.branches.forEach(branch => {
                     const branchY = cactus.y + cactus.height * branch.position;
+                    const branchX = cactus.x + (branch.side < 0 ? 0 : cactus.width);
+                    
+                    // 绘制分支
                     ctx.fillRect(
-                        cactus.x + (branch.side * cactus.width), 
+                        branchX, 
+                        branchY,
+                        branch.side * cactus.width, 
+                        cactus.width
+                    );
+                    
+                    // 绘制垂直部分
+                    ctx.fillRect(
+                        branchX + branch.side * cactus.width - (branch.side < 0 ? cactus.width : 0),
                         branchY,
                         cactus.width,
                         branch.height
                     );
-                    // 分支连接处的圆角
+                    
+                    // 分支顶部圆角
                     ctx.beginPath();
                     ctx.arc(
-                        cactus.x + (branch.side * cactus.width) + (branch.side < 0 ? cactus.width : 0),
+                        branchX + branch.side * cactus.width - (branch.side < 0 ? cactus.width : 0) + cactus.width / 2,
                         branchY,
                         cactus.width / 2,
                         0,
-                        Math.PI * 2
+                        Math.PI,
+                        true
+                    );
+                    ctx.fill();
+                    
+                    // 分支连接处的圆角
+                    ctx.beginPath();
+                    ctx.arc(
+                        branchX,
+                        branchY + cactus.width / 2,
+                        cactus.width / 2,
+                        (branch.side < 0 ? 0 : Math.PI / 2),
+                        (branch.side < 0 ? Math.PI / 2 : Math.PI),
+                        false
                     );
                     ctx.fill();
                 });
+                
+                // 添加暗绿色阴影效果
+                ctx.fillStyle = 'rgba(0,50,0,0.5)';
+                ctx.fillRect(cactus.x + cactus.width * 0.8, cactus.y, cactus.width * 0.2, cactus.height);
             });
         }
         
@@ -269,6 +352,16 @@
                         cactus.x = canvas.width;
                         cactus.height = Math.random() * 60 + 40;
                         cactus.y = canvas.height * 0.75 - cactus.height;
+                        // 重新生成分支
+                        cactus.branches = [];
+                        const numBranches = Math.floor(Math.random() * 2) + 1;
+                        for (let j = 0; j < numBranches; j++) {
+                            cactus.branches.push({
+                                height: Math.random() * 30 + 20,
+                                position: Math.random() * 0.4 + 0.2,
+                                side: Math.random() > 0.5 ? 1 : -1
+                            });
+                        }
                     }
                 });
             }
@@ -283,20 +376,21 @@
         
         // 绘制道路
         function drawRoad() {
-            // 灰色道路
-            ctx.fillStyle = '#333333';
+            // 砂石路颜色
+            ctx.fillStyle = '#C2B280';
             ctx.fillRect(0, canvas.height * 0.75 + 30, canvas.width, 60);
             
-            // 添加道路纹理 - 小坑洼和不平整
-            ctx.fillStyle = '#2A2A2A';
-            for (let i = 0; i < 20; i++) {
-                const x = (i * 100 + (road.offset * 0.5) % 100) % canvas.width;
-                const width = Math.random() * 20 + 10;
-                ctx.fillRect(x, canvas.height * 0.75 + 35, width, 5);
-            }
+            // 添加道路纹理 - 小坑洼和石头
+            // ctx.fillStyle = '#A89968';
+            // for (let i = 0; i < 40; i++) {
+            //     const x = (i * 50 + (road.offset * 0.5) % 50) % canvas.width;
+            //     const width = Math.random() * 15 + 5;
+            //     const height = Math.random() * 5 + 2;
+            //     ctx.fillRect(x, canvas.height * 0.75 + 35 + Math.random() * 40, width, height);
+            // }
             
             // 白色标记线（虚线）
-            ctx.fillStyle = '#FFFFFF';
+            ctx.fillStyle = '#D8D0C0';
             const totalWidth = road.stripeWidth + road.stripeGap;
             const numStripes = Math.ceil(canvas.width / totalWidth) + 1;
             
@@ -311,80 +405,150 @@
             // 计算当前抖动的Y偏移量
             const shakeOffset = car.shake.amplitude * Math.sin(car.shake.offset);
             
-            // 车身（红色矩形）
-            ctx.fillStyle = '#FF0000';
-            ctx.fillRect(car.x, car.y + shakeOffset, car.width, car.height / 2);
+            // 车身底部（越野车底盘）
+            ctx.fillStyle = '#333333';
+            ctx.fillRect(car.x, car.y + 10 + shakeOffset, car.width, car.height / 2);
             
-            // 车顶（深红色矩形）
-            ctx.fillStyle = '#DD0000';
-            ctx.fillRect(car.x + 20, car.y - 20 + shakeOffset, car.width - 60, car.height / 2);
+            // 主车身（越野车身体）
+            ctx.fillStyle = '#8B4513'; // 棕色 - 适合沙漠环境
+            ctx.fillRect(car.x + 10, car.y - 10 + shakeOffset, car.width - 20, car.height / 2 + 10);
             
-            // 车窗（蓝色半透明）
-            ctx.fillStyle = 'rgba(136, 204, 255, 0.7)';
-            ctx.fillRect(car.x + 25, car.y - 15 + shakeOffset, car.width - 70, car.height / 2 - 10);
+            // 车顶
+            ctx.fillStyle = '#A0522D'; // 深棕色车顶
+            ctx.fillRect(car.x + 20, car.y - 25 + shakeOffset, car.width - 45, car.height / 2);
             
-            // 车轮（黑色圆形）
+            // 车窗（偏蓝色半透明）
+            ctx.fillStyle = 'rgba(200, 230, 255, 0.6)';
+            ctx.fillRect(car.x + 25, car.y - 20 + shakeOffset, car.width - 70, car.height / 2 - 10);
+            
+            // 后窗
+            ctx.fillStyle = 'rgba(200, 230, 255, 0.5)';
+            ctx.fillRect(car.x + car.width - 40, car.y - 20 + shakeOffset, 15, car.height / 2 - 10);
+            
+            // 前保险杠
+            ctx.fillStyle = '#444444';
+            ctx.fillRect(car.x, car.y + 15 + shakeOffset, 15, 10);
+            
+            // 车顶行李架
+            ctx.strokeStyle = '#555555';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(car.x + 25, car.y - 28 + shakeOffset);
+            ctx.lineTo(car.x + car.width - 45, car.y - 28 + shakeOffset);
+            ctx.stroke();
+            
+            // 绘制三个支撑杆
+            for (let i = 0; i < 3; i++) {
+                const xPos = car.x + 30 + i * 20;
+                ctx.beginPath();
+                ctx.moveTo(xPos, car.y - 28 + shakeOffset);
+                ctx.lineTo(xPos, car.y - 25 + shakeOffset);
+                ctx.stroke();
+            }
+            
+            // 车轮（黑色圆形）- 更大的越野轮胎
             ctx.fillStyle = '#111111';
             
             // 前轮（带旋转）
             ctx.save();
-            ctx.translate(car.x + 90, car.y + 30 + shakeOffset);
+            ctx.translate(car.x + 90, car.y + 35 + shakeOffset);
             ctx.rotate(car.wheels.rotation);
+            // 轮胎
             ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
             ctx.fill();
             
-            // 添加轮毂细节
-            ctx.fillStyle = '#444';
+            // 轮胎表面花纹
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 8; i++) {
+                const angle = i * Math.PI / 4;
+                ctx.beginPath();
+                ctx.moveTo(9 * Math.cos(angle), 9 * Math.sin(angle));
+                ctx.lineTo(16 * Math.cos(angle), 16 * Math.sin(angle));
+                ctx.stroke();
+            }
+            
+            // 轮毂
+            ctx.fillStyle = '#777';
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#555';
             ctx.beginPath();
             ctx.arc(0, 0, 5, 0, Math.PI * 2);
             ctx.fill();
-            
-            // 添加轮辐
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < 4; i++) {
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(15 * Math.cos(i * Math.PI / 2), 15 * Math.sin(i * Math.PI / 2));
-                ctx.stroke();
-            }
             ctx.restore();
             
             // 后轮（带旋转）
             ctx.save();
-            ctx.translate(car.x + 30, car.y + 30 + shakeOffset);
+            ctx.translate(car.x + 30, car.y + 35 + shakeOffset);
             ctx.rotate(car.wheels.rotation);
+            // 轮胎
             ctx.beginPath();
-            ctx.arc(0, 0, 15, 0, Math.PI * 2);
+            ctx.arc(0, 0, 18, 0, Math.PI * 2);
             ctx.fill();
             
-            // 添加轮毂细节
-            ctx.fillStyle = '#444';
+            // 轮胎表面花纹
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            for (let i = 0; i < 8; i++) {
+                const angle = i * Math.PI / 4;
+                ctx.beginPath();
+                ctx.moveTo(9 * Math.cos(angle), 9 * Math.sin(angle));
+                ctx.lineTo(16 * Math.cos(angle), 16 * Math.sin(angle));
+                ctx.stroke();
+            }
+            
+            // 轮毂
+            ctx.fillStyle = '#777';
+            ctx.beginPath();
+            ctx.arc(0, 0, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#555';
             ctx.beginPath();
             ctx.arc(0, 0, 5, 0, Math.PI * 2);
             ctx.fill();
-            
-            // 添加轮辐
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 2;
-            for (let i = 0; i < 4; i++) {
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(15 * Math.cos(i * Math.PI / 2), 15 * Math.sin(i * Math.PI / 2));
-                ctx.stroke();
-            }
             ctx.restore();
             
-            // 车灯（黄色圆形）
-            ctx.fillStyle = '#FFFF00';
+            // 车灯（白色椭圆形）
+            ctx.fillStyle = '#FFFFDD';
             ctx.beginPath();
-            ctx.arc(car.x + 120, car.y + 10 + shakeOffset, 5, 0, Math.PI * 2);
+            ctx.ellipse(car.x + 5, car.y + 5 + shakeOffset, 4, 6, 0, 0, Math.PI * 2);
             ctx.fill();
             
-            // 添加一些细节 - 车牌
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(car.x + 100, car.y + 25 + shakeOffset, 15, 5);
+            // 车灯光效
+            const glowGradient = ctx.createRadialGradient(
+                car.x + 5, car.y + 5 + shakeOffset, 0,
+                car.x + 5, car.y + 5 + shakeOffset, 15
+            );
+            glowGradient.addColorStop(0, 'rgba(255, 255, 200, 0.8)');
+            glowGradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.ellipse(car.x + 5, car.y + 5 + shakeOffset, 15, 15, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 后灯（红色）
+            ctx.fillStyle = '#FF3333';
+            ctx.beginPath();
+            ctx.rect(car.x + car.width - 5, car.y + 5 + shakeOffset, 4, 6);
+            ctx.fill();
+            
+            // 沙漠灰尘效果
+            if (car.reachedCenter && Math.random() > 0.7) {
+                ctx.fillStyle = 'rgba(210, 180, 140, 0.3)';
+                for (let i = 0; i < 5; i++) {
+                    const dustX = car.x + 10 + Math.random() * 20;
+                    const dustY = car.y + 40 + shakeOffset + Math.random() * 10;
+                    const dustSize = Math.random() * 8 + 3;
+                    ctx.beginPath();
+                    ctx.arc(dustX, dustY, dustSize, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
         }
 
         // 动画状态控制
@@ -497,11 +661,11 @@
         });
         
         // 创建高楼大厦
-        createBuildings();
+        createLandscape();
         
         // 初始化场景（但不启动动画）
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawBuildings();
+        drawLandscape();
         drawRoad();
         drawCar();
         
