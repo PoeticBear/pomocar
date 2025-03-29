@@ -11,7 +11,7 @@ interface PomodoroTimerProps {
 export default function PomodoroTimer({ onStart, onComplete }: PomodoroTimerProps) {
   const [isStarted, setIsStarted] = useState(false);
   const { formattedTime, startTimer } = useTimer({
-    initialTime: 25 * 60,
+    initialTime: 26 * 60,
     onComplete
   });
   
