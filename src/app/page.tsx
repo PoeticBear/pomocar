@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <main className="relative w-full h-screen overflow-hidden">
       <div className="absolute top-0 left-0 w-full text-center py-2 text-[#8B4513] text-2xl font-bold z-10 shadow-sm">
-        POMODORO CAR
+        POMODORO CAR - CREATIVE POMODORO TIMER
       </div>
       
       <DesertScene isAnimating={isAnimating} />
