@@ -1,47 +1,36 @@
-# POMO CAR
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-POMO CAR 是一个结合了番茄工作法和视觉反馈的网页应用。在一个充满都市风格的背景中，通过行驶的汽车来展示时间的流逝，让工作学习过程更加生动有趣。
+## Getting Started
 
-## 功能特点
+First, run the development server:
 
-### 基础功能
-- 25分钟番茄时钟倒计时
-- 动态都市背景，包含随机生成的建筑物和亮灭的窗户
-- 精心设计的汽车动画，包括车轮旋转和车身抖动效果
-- 无限循环的道路动画效果
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-### 视觉效果
-- 深蓝色夜晚背景
-- 动态生成的城市建筑群
-- 随机闪烁的建筑窗户
-- 平滑的汽车运动动画
-- 逼真的道路纹理效果
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### 交互设计
-- 响应式布局，适配不同屏幕尺寸
-- 简洁的计时器界面
-- 一键开始功能
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## 使用方法
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. 打开网页后，您会看到一个停靠在屏幕左侧的红色汽车和中央的计时器
-2. 点击"Start"按钮开始计时
-3. 汽车会行驶到屏幕中央，背景建筑开始移动
-4. 25分钟倒计时结束后，动画自动停止
+## Learn More
 
-## 技术实现
+To learn more about Next.js, take a look at the following resources:
 
-- 使用 HTML5 Canvas 实现动画效果
-- 纯原生 JavaScript 编写，无需任何外部依赖
-- 响应式设计，自适应各种屏幕尺寸
-- 使用 RequestAnimationFrame 实现流畅动画
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## 未来计划
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-- [ ] 添加暂停/继续功能
-- [ ] 支持自定义时长设置
-- [ ] 添加昼夜交替效果
-- [ ] 集成背景音乐和音效
-- [ ] 添加天气效果（雨雪等）
-- [ ] 支持自定义汽车样式
-- [ ] 添加统计功能
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
