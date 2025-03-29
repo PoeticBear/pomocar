@@ -198,7 +198,14 @@ export default function DesertScene({ isAnimating }: DesertSceneProps) {
         context.fill();
         
         // 分支
-        cactus.branches.forEach(branch => {
+// 定义 Branch 类型，包含分支的高度、位置和方向
+type Branch = {
+  height: number;
+  position: number;
+  side: number;
+};
+// 使用明确的类型定义来消除隐式 any 类型的警告
+cactus.branches.forEach((branch: Branch) => {
           const branchY = cactus.y + cactus.height * branch.position;
           const branchX = cactus.x + (branch.side < 0 ? 0 : cactus.width);
           
@@ -455,13 +462,21 @@ export default function DesertScene({ isAnimating }: DesertSceneProps) {
       if (!isAnimating) return;
       
       // 清除画布
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
       
       // 绘制沙漠景观
-      drawLandscape(ctx);
+// 修复：添加 null 检查，确保 ctx 不为 null 时才调用 drawLandscape 函数
+if (ctx) {
+  drawLandscape(ctx);
+}
       
       // 绘制道路
-      drawRoad(ctx);
+// 修复：添加 null 检查，确保 ctx 不为 null 时才调用 drawRoad 函数
+if (ctx) {
+  drawRoad(ctx);
+}
       
       // 检查汽车是否到达屏幕中间位置
       const centerPosition = canvas.width / 2 - car.width / 2;
@@ -488,7 +503,10 @@ export default function DesertScene({ isAnimating }: DesertSceneProps) {
       car.wheels.rotation += car.wheels.speed;
       
       // 绘制汽车
-      drawCar(ctx);
+// 修复：添加 null 检查，确保 ctx 不为 null 时才调用 drawCar 函数
+if (ctx) {
+  drawCar(ctx);
+}
       
       // 继续动画循环
       animationRef.current = requestAnimationFrame(animate);
